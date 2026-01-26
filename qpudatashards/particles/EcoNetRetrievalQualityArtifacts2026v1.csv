@@ -1,0 +1,4 @@
+artifact_id,artifact_type,scope,ecosystems_covered,primary_metric,knowledge_factor,eco_impact_gain,risk_reduction_gain,status
+ART-GRAMMAR-01,EcoGrammarLibrary,Schema+Corridors,Arid-Canals|Wetlands|Prisons,Grammar-Compliance-Rate,0.93,0.90,0.18,IN_DESIGN
+ART-VALID-01,RustValidatorSuite,Kernels+V(t),Cyboquatic|Furnace|Exhaust,Residual_||Vdot||,0.95,0.91,0.22,PILOT
+ART-CROSS-01,CrossEcosystemKERShard,Scoring,Global-Ecosystems,KER+NanoKarmaBytes,0.94,0.92,0.20,ALPHA
