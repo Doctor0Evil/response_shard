@@ -1,0 +1,8 @@
+aln particle mar.satcell.corridors.v1
+  field varid string
+  field units string
+  field safe f64
+  field gold f64
+  field hard f64
+  field weight f64
+end
