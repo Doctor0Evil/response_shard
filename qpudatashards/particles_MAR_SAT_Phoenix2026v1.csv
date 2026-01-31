@@ -1,0 +1,13 @@
+mar_id,basin_id,lat,lon,aquifer_unit,climate_class,
+hlr_current_m_per_d,hlr_safe,hlr_gold,hlr_hard,hlr_weight_w,
+q_in_m3_per_d,q_out_m3_per_d,res_time_d,surcharge_count,r_surcharge,
+c_pfas_in_ngL,c_pfas_out_ngL,c_pfas_gold_ngL,c_pfas_hard_ngL,r_pfas,
+c_pharma_in_ngL,c_pharma_out_ngL,c_pharma_gold_ngL,c_pharma_hard_ngL,r_pharma,
+c_n_in_mgL,c_n_out_mgL,c_n_gold_mgL,c_n_hard_mgL,r_n,
+c_p_in_mgL,c_p_out_mgL,c_p_gold_mgL,c_p_hard_mgL,r_p,
+t_plume_C,t_safe_C,t_gold_C,t_hard_C,r_thermal,
+redox_state_mV,redox_safe_mV,redox_gold_mV,redox_hard_mV,r_redox,
+fouling_index,foul_safe,foul_gold,foul_hard,r_foul,
+cleaning_dose_eq,
+ker_knowledge_k,ker_ecoimpact_e,ker_risk_r,
+hex_provenance
