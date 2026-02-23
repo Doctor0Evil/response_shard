@@ -1,0 +1,25 @@
+aln particle nanoswarm.corridor.v1
+  field shardid string
+  field moduletype string    -- e.g. "Nanoswarm-MarBee-v1"
+  field region string
+  field simorlive string
+  field timestamputc string
+  field didsignature string
+
+  table corridors
+    field varid string
+    field units string
+    field safe f64
+    field gold f64
+    field hard f64
+    field weightw f64
+    field lyapchannel u8
+    field mandatory bool
+  end
+
+  field knowledgefactor01 f64
+  field ecoimpact01 f64
+  field riskofharm01 f64
+
+  field violationresidual f64
+end
