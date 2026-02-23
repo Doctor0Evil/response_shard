@@ -1,0 +1,89 @@
+# Pilot-Gate ALN module for BeeCorridorShard2026v1
+# Hex-stamped for Bostrom DID anchoring.
+
+module BeeCorridorPilotGate2026v1
+
+header
+  ecosafetyhex      0xBEE-CORRIDOR-PILOT-2026-01-25
+  authordidprimary  bostrom18sd2ujv24ual9c9pshtxys6j8knh6xaead9ye7
+  authordidalt      bostrom1ldgmtf20d6604a24ztr0jxht7xt7az4jhkmsrc
+  domain            bee-corridor-ecosafety
+  region            Phoenix-AZ-US
+end
+
+# Canonical mandatory corridor IDs for BeeCorridorShard2026v1.
+particle bee.required.corridors.v1
+  field varids text[]  # ["bee.width_m", "bee.nectar_rich_fraction",
+                       #  "bee.pesticide_load", "bee.continuity_index"]
+end
+
+# Predicate 1: has_all_corridors
+# No corridor, no deployment.
+predicate has_all_corridors(ShardID, Required) -
+  forall Var in Required.varids,
+    exists C in ShardID.corridors,
+      C.varid = Var,
+      ShardID.header.didsignature_valid = true.
+stamp 0xbee1c3d4e5f67890a1b2c3d4e5f67890abcdef1234567890fedcba9876543210
+
+# Predicate 2: compute_residual
+# Normalize risk coordinates and compute Lyapunov residual V_t.
+predicate compute_residual(ShardID, Vt) -
+  Coords = torx_measured_bands(ShardID.corridors),
+  all_rx_leq_one(Coords.values),
+  Vt = sum_w_r(Coords.values, Coords.weights).
+stamp 0xbee2abcdef1234567890fedcba98765432104a2b1c3d5e6f7890a1b2c3d4e5f67
+
+# Predicate 3: safestep over seasonal shard histories
+# Enforces Lyapunov decrease outside safe interior.
+predicate safestep(PrevShardID, NextShardID) -
+  compute_residual(PrevShardID, PrevVt),
+  compute_residual(NextShardID, NextVt),
+  # Safe interior: all r_j <= safe_band_j (from CorridorBands.safe).
+  all_safe =
+    forall (Rx, Safe) in zip(NextShardID.risk_state.values,
+                             NextShardID.corridors.safe),
+      Rx <= Safe,
+  all_safe or NextVt <= PrevVt,
+  PrevShardID.header.timestamp_utc < NextShardID.header.timestamp_utc.
+stamp 0xbee3fedcba98765432104a2b1c3d5e6f7890abcdef12345678901b2c3d4e5f67
+
+# Predicate 4: Pilot-Gate decision for a single shard
+# Approve / derate / stop from corridor + KER + V_t.
+particle bee.pilotgate.decision.v1
+  field decision text  # "approve" | "derate" | "stop"
+end
+
+predicate bee_pilotgate_decide(ShardID, Out) -
+  Req varids["bee.width_m","bee.nectar_rich_fraction",
+              "bee.pesticide_load","bee.continuity_index"],
+  has_all_corridors(ShardID, Req),
+  compute_residual(ShardID, Vt),
+  E   = ShardID.ker.ecoimpactvalue,
+  R   = ShardID.ker.riskofharm,
+
+  # Hard KER gates for deployment.
+  E >= 0.90,
+  R <= 0.15,
+
+  # Dual-threshold on residual V_t.
+  if Vt < 0.50 then
+    Out.decision = "approve"
+  else if Vt < 1.00 then
+    Out.decision = "derate"
+  else
+    Out.decision = "stop".
+stamp 0xbee41b2c3d4e5f67890a4a2b1c3d5e6f7890fedcba9876543210abcdef12345678
+
+# Predicate 5: Governance over a seasonal shard chain
+# Applies safestep between all consecutive shards, then Pilot-Gate to last.
+predicate bee_govern_corridor_chain(ShardChain, FinalDecision) -
+  len(ShardChain) > 0,
+  # Seasonal Lyapunov and DID invariants over the chain.
+  forall i in 0..len(ShardChain)-2,
+    safestep(ShardChain[i], ShardChain[i+1]),
+    ShardChain[i].header.didsignature_valid = true,
+    ShardChain[i+1].header.didsignature_valid = true,
+  Last    = ShardChain[len(ShardChain)-1],
+  bee_pilotgate_decide(Last, FinalDecision).
+stamp 0xbee5a1b2c3d4e5f678904a2b1c3d5e6f7890fedcba9876543210abcdef1234567
