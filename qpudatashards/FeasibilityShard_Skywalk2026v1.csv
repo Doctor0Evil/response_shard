@@ -1,0 +1,49 @@
+shardid,
+projectid,
+city,
+country,
+climate_zone,
+lat,
+lon,
+eval_year,
+
+tech_feas_score,          # 0–1
+ecoimpact_score,          # 0–1 (E)
+economic_score,           # 0–1
+risk_score,               # 0–1 (R)
+socialurban_score,        # 0–1
+knowledgefactor,          # 0–1 (K)
+riskofharm,               # 0–1 (mirrors risk_score or stricter)
+
+capex_per_m_linear_eur,
+opex_energy_kwh_m2y,
+opex_maintenance_eur_y,
+water_price_eur_m3,
+wastewater_tariff_eur_m3,
+
+payback_best_years,
+payback_median_years,
+payback_worst_years,
+
+water_saving_frac,        # 0–1
+hvac_energy_saving_frac,  # 0–1
+nutrient_recovery_frac,   # 0–1 (N recovered / N input)
+food_yield_kg_m2y,
+bipv_generation_kwh_m2y,
+
+greywater_flow_m3_d,
+reuse_fraction,           # 0–1 of greywater reused onsite
+mp_pollutant_corridor,    # 0–1 normalized corridor coordinate
+hb_rating,                # 0–1 bee safety
+oc_impact_safety,         # 0–1 marine safety
+
+legal_eu2020_741_ok,      # bool 0/1
+legal_whg_abwv_ok,        # bool 0/1
+legal_greywater_local_ok, # bool 0/1
+
+corridors_count,
+gate_predicates_count,
+invariants_verified_count,
+
+espd_route,               # enum string e.g. "GO_PILOT","NEEDS_DATA","BLOCKED"
+notes
