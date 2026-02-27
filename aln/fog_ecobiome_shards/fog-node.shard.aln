@@ -1,0 +1,101 @@
+title fog-node.ecobiome.shard.v1
+
+header
+  ecosafety-hex 0xFOG-ECObiome-2026-02-27-ALN
+  authordid-primary bostrom18sd2ujv24ual9c9pshtxys6j8knh6xaead9ye7
+  authordid-alt bostrom1ldgmtf20d6604a24ztr0jxht7xt7az4jhkmsrc
+  domain fog-ecobiome-routing
+  region Phoenix-AZ-US
+
+particle fog.node
+  nodeid text
+  timestamputc text
+  lat f64
+  lon f64
+  region text
+  matrix_profile text
+  env_profile_id text
+
+  temp_c f64
+  rh_pct f64
+  pm10_ug_m3 f64
+  pfas_ng_l f64
+  pfas_adsorption_ng_per_l f64
+  hlr_max_l_m2_h f64
+  dust_abrasion_pm10_ug_m3_threshold f64
+
+  iso14851_thod28d_pct f64
+  iso14851_thod180d_pct f64
+  oecd201_erc50_mg_l f64
+  oecd201_noec_mg_l f64
+
+  r_deg f64              # 0–1 biodegradation shortfall
+  r_algae f64            # 0–1 algal ecotox
+  r_pfas f64             # 0–1 PFAS
+  r_arom f64             # 0–1 aromatics/VOCs
+  r_tot f64              # 0–1 total toxicity index
+
+  V_t f64                # Lyapunov residual (e.g., log10 form)
+  V_t_ok bool
+  biosurfaceok bool
+  lyapunovok bool
+
+  ecoimpactscore f64
+  karmadelta f64
+  evidencehex text
+
+particle residual.summary
+  V_residual f64
+  knowledgefactor f64
+  ecoimpactvalue f64
+  riskofharm f64
+
+contract corridor.present.m
+  m fog.node
+  -> bool
+  # Mandatory toxicity corridors encoded implicitly by requiring finite metrics
+  return
+    m.iso14851_thod28d_pct > 0.0 &&
+    m.iso14851_thod180d_pct > 0.0 &&
+    m.oecd201_erc50_mg_l > 0.0 &&
+    m.oecd201_noec_mg_l > 0.0 &&
+    m.r_deg >= 0.0 && m.r_deg <= 1.0 &&
+    m.r_algae >= 0.0 && m.r_algae <= 1.0 &&
+    m.r_pfas >= 0.0 && m.r_pfas <= 1.0 &&
+    m.r_arom >= 0.0 && m.r_arom <= 1.0 &&
+    m.r_tot >= 0.0 && m.r_tot <= 1.0
+
+contract fog.biosurface.ok.m
+  m fog.node
+  -> bool
+  # r_tot <= 0.10 and no coordinate at hard limit
+  let hard = 1.0
+  return
+    m.r_tot <= 0.10 &&
+    m.r_deg < hard &&
+    m.r_algae < hard &&
+    m.r_pfas < hard &&
+    m.r_arom < hard
+
+contract fog.lyapunov.step.prev, next
+  prev fog.node
+  next fog.node
+  -> bool
+  # Non-increasing V_t outside safe interior.
+  let safe_interior = 0.0
+  let prevV = prev.V_t
+  let nextV = next.V_t
+  if prevV <= safe_interior && nextV <= safe_interior
+    then return true
+  else
+    return nextV <= prevV
+
+contract fog.ecosafety.accept.prev, next
+  prev fog.node
+  next fog.node
+  -> bool
+  # Combined gate: corridor present, biosurface_ok, Lyapunov step OK.
+  return
+    corridor.present.m(next) &&
+    fog.biosurface.ok.m(next) &&
+    fog.lyapunov.step(prev, next)
